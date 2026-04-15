@@ -15,8 +15,8 @@ __pycache__/
 *.env
 .env.local
 
-# Data files (regenerable, too large for git)
-!data/.gitkeep
+# Data files committed so Streamlit Cloud can read them directly
+# (9 MB total — within GitHub limits)
 
 # Power BI temp files
 *.pbix.tmp

@@ -1,0 +1,11 @@
+store_id,city,store_type,sqft,opened_date
+MUM_BKC,Mumbai,Standard,1800,2023-10-10
+MUM_LINKING_RD,Mumbai,Standard,3000,2023-12-15
+MUM_PHOENIX,Mumbai,Standard,2500,2025-04-20
+DEL_CP,Delhi,Standard,1800,2023-10-17
+DEL_SELECT_CITY,Delhi,Standard,2500,2025-05-07
+DEL_DLF_PROMENADE,Delhi,Standard,3000,2023-06-02
+BLR_INDIRANAGAR,Bengaluru,Standard,3000,2024-07-05
+BLR_PHOENIX,Bengaluru,Standard,3000,2023-12-20
+BLR_ORION,Bengaluru,Standard,2500,2024-07-19
+BLR_FLAGSHIP_10K,Bengaluru,Flagship,10000,2025-02-20
