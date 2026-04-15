@@ -1,89 +1,107 @@
 # SNITCH Marketplace Margin & Returns Intelligence System
 
-> A SQL-first marketplace analytics project simulating a multi-channel D2C men's fashion business across Mumbai, Delhi, and Bengaluru. Built end-to-end on **Snowflake + Power BI + Python (Groq / Llama 3)** with an AI workflow layer for natural-language analytics and automated daily insights.
+A marketplace analytics system that surfaces the true profitability of a multi-channel D2C fashion business across own platforms, third-party marketplaces, and offline retail at the granularity needed to make day-to-day commercial decisions.
 
-**Built for:** Business Analyst applications (Snitch, ecommerce/retail data roles)
 **Author:** Abhishek Parle
+
 **Stack:** Snowflake · Power BI Service · Python · DuckDB · Groq API · Streamlit · GitHub
 
 ---
 
 ## Live demos
 
-| Demo | URL | What it shows |
-|---|---|---|
-| Streamlit App | [YOUR_STREAMLIT_APP_URL_HERE](https://YOUR_STREAMLIT_APP_URL_HERE) | AI-powered NL-to-SQL and daily insights, no login required |
-| Power BI Dashboard | [YOUR_POWERBI_EMBED_LINK_HERE](https://YOUR_POWERBI_EMBED_LINK_HERE) | 5-page interactive dashboard — P&L, returns, channel, SKU, marketing |
+## Streamlit App: https://snitch-marketplace-intelligence.streamlit.app/
+
+<img width="1850" height="866" alt="image" src="https://github.com/user-attachments/assets/f844545c-3495-4dce-bcf4-1b67d33e2e99" />
+
+
+<img width="1902" height="1012" alt="image" src="https://github.com/user-attachments/assets/0712d32e-af87-4ff2-83c0-b0d892f1920b" />
+
+
+## Power BI Dashboard:
+
+<img width="1252" height="702" alt="image" src="https://github.com/user-attachments/assets/27b3a277-bf38-4727-9257-eb056e6bbcbf" />
+
+
+
+
 
 ---
 
 ## Why this project exists
 
-Snitch's job description for the Business Analyst role is sharp: *"You'll own the numbers that run our marketplace and category business. Daily P&L visibility, pricing models, returns analytics, category performance. Strong SQL and an intent/ability to build AI workflows is non-negotiable."*
+Marketplace-driven D2C fashion is a category where standard P&L reports actively hide the real economics. Gross margin on a SKU can look healthy while post-return margin is negative once refunds, reverse logistics, and marketplace commissions are netted out. A category-channel combination can show strong revenue while contributing nothing to the bottom line. The fast-fashion playbook of "launch many, learn fast" only works if the analytics layer can keep up — and most of it lives in spreadsheets pulled together at the end of each month.
 
-This project was built to demonstrate exactly that:
-- **Daily P&L visibility** → `V_DAILY_PNL` view + Power BI cockpit page
-- **Returns analytics** → category × channel return matrix, "true margin post returns" view exposing bleeding SKUs
-- **Pricing models** → channel price parity check across Myntra, Flipkart, Ajio, D2C, Offline
-- **Category performance** → marketing efficiency / ROMI scorecard
-- **AI workflows** → NL-to-SQL chat over the warehouse + automated daily insights generator
+This project is a working prototype of what that analytics layer looks like when built right: daily granularity, every cost line accounted for, the bleeding SKUs surfaced automatically, and a natural-language interface so anyone in the business can interrogate the numbers without writing SQL.
 
----
-
-## The dataset (mock but realistic)
-
-| Asset | Rows | Notes |
-|---|---|---|
-| `fact_orders` | ~73,000 | 6 months, Oct 2025 → Mar 2026 |
-| `fact_returns` | ~13,000 | 17.9% blended return rate |
-| `fact_marketing_spend` | ~5,500 | Daily by channel × category |
-| `dim_sku` | 295 | Realistic MRP, COGS, packaging cost |
-| `dim_store` | 10 | 3 cities, incl. Bengaluru flagship (10K sqft) |
-
-**Channels:** D2C App, D2C Web, Myntra, Flipkart, Ajio, Offline
-**Cities:** Mumbai (38%), Delhi (34%), Bengaluru (28%)
-**Categories:** Shirts, T-Shirts, Jeans, Co-ords, Trousers, Jackets
-
-Distributions are tuned to reflect real Indian fast-fashion economics: Co-ords and Jeans return at 25–36% on marketplaces, marketplace commissions of 28–32%, weekend revenue lifts, and higher discount depth on Myntra/Flipkart vs D2C.
-
----
-
-## What the data revealed (sample insights)
-
-After loading, I ran the analytical views and pulled out three findings I'd take into the interview:
-
-1. **Co-ords on Flipkart return at 36.1%** — vs 12% for T-shirts on D2C App. The post-return margin on this category × channel combo is *negative* despite a healthy gross margin. **Recommendation:** add a size-fit guide on Flipkart PDPs and tighten the SKU assortment to bestsellers.
-2. **10 SKUs have negative true margin post-returns** despite showing ₹95K–₹230K in gross margin. They look profitable on the P&L until you net out refunds and reverse logistics. **Recommendation:** auto-flag any SKU where post-return margin drops below ₹0 in the daily ops report.
-3. **D2C App is the #1 channel at 29% of revenue**, beating Myntra (22.8%). The 0% commission and lower return rate make it the most profitable channel by a wide margin — **doubling marketing spend on D2C App vs Flipkart yields ~2.4x more contribution rupees.**
+What's in it:
+- **Daily P&L visibility** — channel × city × category × day, with a full cost waterfall from gross revenue down to contribution margin
+- **Returns analytics** — return rate matrix by category × channel, return-reason breakdown, and a true-margin-post-returns view that exposes SKUs silently bleeding profitability
+- **Pricing analytics** — channel price parity check across D2C, Myntra, Flipkart, Ajio, and offline stores to detect SKUs underpriced on one channel and cannibalising margin on another
+- **Category performance** — marketing efficiency / ROMI scorecard joining contribution margin to ad spend per category × channel
+- **AI workflows** — natural-language SQL chat over the warehouse, plus an automated daily insights generator that detects anomalies and writes a five-bullet executive summary
 
 ---
 
 ## Architecture
 
-```
-  Python (generate_data.py)
-         │
-         ▼
-   CSVs (data/*.csv)
-         │
-         ▼
-   Snowflake RAW schema  ────►  Snowflake MARTS schema (6 views)
-                                          │
-                          ┌───────────────┼────────────────┐
-                          ▼               ▼                ▼
-                     Power BI       Python (DuckDB)   AI Workflow
-                     Dashboard      Validation        (Gemini API)
-                                                     ├─ NL-to-SQL
-                                                     └─ Daily Insights
-```
+The system is built on a four-layer stack: a Snowflake data warehouse, a SQL semantic layer, a Power BI presentation layer, and a Python service layer for AI-driven workflows.
+
+**Data warehouse — Snowflake**
+A two-schema design separates raw and modelled data. The `RAW` schema holds five tables — `FACT_ORDERS`, `FACT_RETURNS`, `FACT_MARKETING_SPEND`, `DIM_SKU`, `DIM_STORE` — modelled as a star schema with conformed dimensions on city, channel, category, and SKU. The `MARTS` schema holds the analytical views that encode business logic, keeping raw data immutable and the transformation layer version-controlled in SQL.
+
+**Semantic layer — SQL views**
+Seven views in `MARTS` translate raw events into business metrics:
+
+| View | Purpose |
+|---|---|
+| `V_DAILY_PNL` | Channel × city × category × day with full cost waterfall (revenue → discount → returns → commission → COGS → packaging → logistics → contribution margin) |
+| `V_RETURNS_ANALYTICS` | Return reason concentration by category, channel, and city |
+| `V_RETURN_RATE` | Return rate matrix at category × channel grain |
+| `V_PRICE_PARITY` | Average selling price per SKU across every channel, with spread |
+| `V_SKU_PROFITABILITY` | Gross margin vs true margin post-returns per SKU |
+| `V_MARKETING_EFFICIENCY` | Contribution margin and ROMI joined to spend per category × channel |
+| `V_STORE_PERFORMANCE` | Per-store and per-square-foot economics for offline retail |
+
+The contribution margin definition lives in one place — change it once, every downstream consumer updates.
+
+**Presentation layer — Power BI**
+A five-page Power BI report connected to the MARTS schema. The Overview page is a single-screen executive cockpit — Online/Offline channel toggle, city filter, hero KPI, daily contribution margin trend with seven-day rolling average, channel waterfall, return-rate heatmap, and a live "bleeding SKUs" table. Detail pages cover returns, pricing parity, marketing efficiency, and store performance. The dashboard is published to Power BI Service and embedded for public access.
+
+**AI workflow layer — Python**
+Two production-style workflows wrap the warehouse:
+
+1. **Natural-language SQL.** Accepts a business question, prompts a frontier LLM with the schema context and business rules, generates SQL, executes it, and returns the SQL, the result, and a plain-English explanation. The LLM never sees the underlying data — only schema metadata and the query result the user already has access to.
+
+2. **Automated daily insights.** Computes deterministic KPIs (yesterday's revenue, contribution margin, category movers, return-reason concentration vs trailing seven-day baselines), passes the structured payload to the LLM purely for narration, and emits a five-bullet executive summary. The pattern deliberately separates compute (deterministic SQL) from narration (creative LLM) so numbers are never hallucinated.
+
+A Streamlit web app exposes both workflows through a browser interface, deployed via GitHub-driven continuous deployment with secrets managed through the platform's encrypted store.
 
 ---
 
-## Repo structure
+## Findings
+
+Three findings drawn from the modelled data, representative of the kind of insight the system is built to surface:
+
+**Co-ords on Flipkart return at 36.1%.** Compared with 12% for T-shirts on the D2C app. Despite a healthy gross margin, the post-return margin on this combination is negative once refunds and reverse logistics are netted out. Action: tighten the SKU assortment on Flipkart to bestsellers, add a size-fit guide on the PDP, and flag the channel-category for assortment review at the next merchandising cycle.
+
+**Ten SKUs show negative true margin post-returns.** These SKUs report ₹95K to ₹230K in gross margin but post negative margin once refunds and reverse logistics are deducted. They are invisible on standard P&L dashboards that stop at gross. Action: auto-flag any SKU where post-return margin drops below zero in the daily ops report; consider price corrections, fit improvements, or delisting for the worst offenders.
+
+**D2C App is the most profitable channel.** It contributes 29% of gross revenue against Myntra at 22.8%, but with zero marketplace commission and lower returns, it generates roughly 2.4x more contribution rupees per rupee of marketing spend. Action: rebalance incremental marketing budget from Flipkart and Ajio toward D2C App, and consider channel-specific creative that drives app installs.
+
+---
+
+## Stack
+
+Snowflake (data warehouse) · Power BI Service (BI and distribution) · Python 3.14 (orchestration and AI layer) · DuckDB (local query engine for the AI workflow) · Graq llama-3.3-70b-versatile (LLM) · Streamlit Community Cloud (web deployment) · GitHub (source control and continuous deployment)
+
+---
+
+## Repository structure
 
 ```
 snitch_project/
-├── data/                       # Generated CSVs
+├── data/                       # CSVs
 │   ├── dim_sku.csv
 │   ├── dim_store.csv
 │   ├── fact_orders.csv
@@ -101,70 +119,3 @@ snitch_project/
     └── case_study.pdf          # 1-page recruiter handout
 ```
 
----
-
-## How to run it (60 minutes end-to-end)
-
-### Step 1 — Generate the data (2 min)
-```bash
-pip install pandas numpy faker duckdb
-python python/generate_data.py
-```
-
-### Step 2 — Spin up Snowflake free trial (10 min)
-1. Sign up at https://signup.snowflake.com (30-day free trial, $400 credits, no credit card)
-2. Pick AWS Mumbai region for low latency
-3. Open a worksheet, paste and run `sql/01_snowflake_ddl.sql`
-4. Upload CSVs via Snowsight: **Data → Add Data → Load files into existing tables**
-5. Run `sql/02_analytical_views.sql`
-
-### Step 3 — Power BI dashboard (30 min)
-Follow `powerbi/DASHBOARD_GUIDE.md` page by page. Connect to Snowflake → MARTS schema → import all 6 views.
-
-### Step 4 — AI workflow layer (10 min)
-```bash
-pip install groq
-export GROQ_API_KEY=<your_free_key>   # https://console.groq.com/keys
-
-# Daily insights generator
-python python/ai_workflow.py insights
-
-# Natural language Q&A
-python python/ai_workflow.py ask "What is the contribution margin for Co-ords on Flipkart in March?"
-```
-
-### Step 5 — Run the Streamlit app locally (2 min)
-```bash
-pip install streamlit
-streamlit run python/streamlit_app.py
-```
-The app opens at `http://localhost:8501`. Both tabs work without a Groq key (the AI summary falls back to raw JSON). To enable the AI layer, create `.streamlit/secrets.toml`:
-```toml
-GROQ_API_KEY = "your_groq_api_key_here"
-```
-
-### Step 6 — Deploy to Streamlit Community Cloud (5 min)
-See the full guide in [docs/STREAMLIT_DEPLOY.md](docs/STREAMLIT_DEPLOY.md).
-
-**Quick steps:**
-1. Push this repo to GitHub (public or private)
-2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**
-3. Select your repo, branch `main`, main file `python/streamlit_app.py`
-4. Click **Advanced settings → Secrets** and paste your `GROQ_API_KEY`
-5. Click **Deploy** — live URL in ~2 minutes
-
-### Step 7 — Publish Power BI (5 min)
-- Power BI: **Publish** → workspace → **Publish to web** (free, gives you a public link)
-- Push repo to GitHub
-- Add the Power BI link and Streamlit URL to this README and your resume
-
----
-
-## Resume bullet (copy-paste ready)
-
-> Built a marketplace margin and returns intelligence system for a simulated Indian D2C fashion brand on **Snowflake + Power BI**, modeling 73K orders across 6 channels and 3 cities. Designed 6 analytical views (daily P&L, returns deep-dive, channel price parity, SKU profitability post-returns, marketing efficiency) and built an AI workflow layer in Python using the **Gemini API** for natural-language SQL queries and automated daily anomaly detection. Surfaced 10 SKUs with negative post-return margin invisible on standard P&L reports.
-
----
-
-## Cost
-**₹0.** Snowflake trial is free. Power BI Service is free for personal use. Gemini API free tier is 1M tokens/day — far beyond what this project needs.
