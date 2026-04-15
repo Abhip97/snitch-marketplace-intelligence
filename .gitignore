@@ -1,0 +1,41 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment variables and secrets
+.env
+*.env
+.env.local
+
+# Data files (regenerable, too large for git)
+!data/.gitkeep
+
+# Power BI temp files
+*.pbix.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Streamlit secrets (real file — example is safe to commit)
+.streamlit/secrets.toml
+
+# Docs and scripts excluded from public repo
+CLAUDE.md
+docs/STREAMLIT_DEPLOY.md
+powerbi/DASHBOARD_GUIDE.md
+python/generate_data.py
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
