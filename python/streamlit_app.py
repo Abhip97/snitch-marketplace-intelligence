@@ -262,7 +262,7 @@ def _styled(chart, h: int = 290):
 st.title("SNITCH Marketplace Intelligence")
 st.caption("Margin · Returns · Channel Analytics  ·  73K orders  ·  6 channels  ·  3 cities  ·  6 months")
 col_h, _ = st.columns([1, 9])
-col_h.link_button("GitHub Repo", "https://github.com/YOUR_USERNAME/snitch_project")
+col_h.link_button("GitHub Repo", "https://github.com/Abhip97/snitch-marketplace-intelligence")
 st.divider()
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
